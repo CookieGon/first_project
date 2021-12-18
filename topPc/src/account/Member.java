@@ -3,6 +3,7 @@ package account;
 public class Member {
 	private String id;
 	private String pw; 
+	private int account;
 	@Override
 	public String toString() {
 		return "Member [id=" + id + ", pw=" + pw + ", name=" + name + "]";
@@ -14,6 +15,9 @@ public class Member {
 		this.id = id;
 		this.pw = pw;
 		this.name = name;
+	}
+	public Member() {
+		
 	}
 
 	public String getId() {
@@ -38,6 +42,12 @@ public class Member {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	public int getAccount() {
+		return account;
+	}
+	public void setAccount(int account) {
+		this.account = account;
 	}
 	
 }
