@@ -4,9 +4,9 @@ import java.util.HashMap;
 
 public class Management {
 	
-	public HashMap<String, String> member = new HashMap<String, String>();
-	public void addMember(String id,String pw) {
-		member.put(id, pw);
+	public HashMap<String, Member> member = new HashMap<String, Member>();
+	public void addMember(String id,Member mb) {
+		member.put(id, mb);
 	}
 	
 }

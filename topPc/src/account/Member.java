@@ -3,15 +3,17 @@ package account;
 public class Member {
 	private String id;
 	private String pw; 
+	private String name;
 	private int account;
+	
 	@Override
 	public String toString() {
-		return "Member [id=" + id + ", pw=" + pw + ", name=" + name + "]";
+		return "Member [id=" + id + ", pw=" + pw + ", name=" + name +", account="+account+ "]";
 	}
 
-	private String name;
 
-	public Member(String id, String pw, String name) {
+	public Member(String id, String pw, String name, int account) {
+		this.account = account;
 		this.id = id;
 		this.pw = pw;
 		this.name = name;

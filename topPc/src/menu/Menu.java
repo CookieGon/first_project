@@ -8,14 +8,19 @@ import account.Member;
 
 public class Menu {
 	Management newUser = new Management();
-	Member memberInfo = new Member();
+	AdminMenu adminControl = new AdminMenu();
 	private String mod;
 	private String switchYN;
-	private boolean runnig = true;
+	
+	private String nowUserId; // 로그인 중인 아이디
+	private String nowUserName;
+	private int nowUserAccount;
+	
+	private boolean runnig = true;	// 메인메뉴 동작 상태
 	Scanner sc = new Scanner(System.in);
 
 	public void run() {
-		while(runnig) {
+		while (runnig) {
 			System.out.println("1. login");
 			System.out.println("2. join");
 			System.out.println("4. exit");
@@ -48,20 +53,21 @@ public class Menu {
 	}
 
 	private void join() { // 회원가입
+		Member memberInfo = new Member();
 		System.out.println("ID를 입력하세요");
 		memberInfo.setId(sc.next());
 		System.out.println("비밀번호를 입력 하세요");
 		memberInfo.setPw(sc.next());
 		System.out.println("이름을 입력 하세요");
 		memberInfo.setName(sc.next());
-		memberInfo.setAccount(0);
-		newUser(memberInfo.getId(), memberInfo.getPw());
+		memberInfo.setAccount(1500);
+		newUser(memberInfo.getId(), memberInfo);
 		System.out.println(memberInfo.toString());
 		run();
 	}
 
-	private void newUser(String id, String pw) {
-		newUser.addMember(id, pw);
+	private void newUser(String id, Member mb) {
+		newUser.addMember(id, mb);
 	}
 
 	private void login() { // 로그인
@@ -70,72 +76,71 @@ public class Menu {
 		if (newUser.member.containsKey(id)) {
 			System.out.println("비밀번호를 입력 하세요");
 			String pw = sc.next();
-			if (newUser.member.get(id).equals(pw)) {
-				if (memberInfo.getAccount() < 1200) {
+			if (newUser.member.get(id).getPw().equals(pw)) {
+				if (newUser.member.get(id).getAccount() < 1200) {
 					System.out.println("남은 사용시간이 부족합니다. 충전창으로 이동합니다");
-					charging();
+					nowUserAccount = newUser.member.get(id).getAccount();
+					charging(nowUserAccount);
 				} else {
 					System.out.println("로그인에 성공했습니다");
-					printUserMenu();
+					nowUserId = id;
+					nowUserName = newUser.member.get(id).getName();
+					nowUserAccount = newUser.member.get(id).getAccount();
+					printUserMenu(nowUserId,nowUserName,nowUserAccount);
 				}
 			}
 		}
 
 	}
 
-	private void printUserMenu() {
-		System.out.println("id : " + memberInfo.getId() + " 이름 : " + memberInfo.getName());
+	private void printUserMenu(String id, String name ,int account) {
+		System.out.println("id : " + id + " 이름 : " + name);
 		System.out.println("1. 잔액 충전");
 		System.out.println("2. 상품 주문");
 		System.out.println("3. 잔액 조회");
 		System.out.println("4. 사용 종료");
 		mod = sc.next();
-		switch (mod) {
-		case "1":
-			charging();
-			break;
-		case "2":
-			order();
-			break;
-		case "3":
-			checkAccount();
-			break;
-		case "4":
-			logOut();
-			run();
-			break;
-		default:
-			System.out.println();
-			System.out.println("메뉴의 번호를 입력해 주세요!");
-			System.out.println();
-			break;
+		while(true) {
+			switch (mod) {
+			case "1":
+				charging(account);
+				break;
+			case "2":
+				order();
+				break;
+			case "3":
+				checkAccount(account);
+				break;
+			case "4":
+				logOut();
+				break;
+			}
 		}
 	}
 
 	private void logOut() {
 		System.out.println("사용을 종료 하시겠습니까?(y,n)");
 		switchYN = sc.next();
-		if(switchYN.equals("y") || switchYN.equals("Y")) {
+		if (switchYN.equals("y") || switchYN.equals("Y")) {
 			run();
-		}else if(switchYN.equals("n")||switchYN.equals("N")) {
-			printUserMenu();
-		}else {
+		} else if (switchYN.equals("n") || switchYN.equals("N")) {
+			printUserMenu(nowUserId,nowUserName,nowUserAccount);
+		} else {
 			System.out.println("y또는 n을 입력해 주세요");
 			logOut();
 		}
 	}
 
-	private void checkAccount() {
-		System.out.println(memberInfo.getName()+"님의 잔액은 "+memberInfo.getAccount()+"입니다.");
-		printUserMenu();
+	private void checkAccount(int account) {
+		System.out.println(nowUserId + "님의 잔액은 " + account + "입니다.");
+		printUserMenu(nowUserId,nowUserName,account);
 	}
 
 	private void order() {
-		// TODO Auto-generated method stub
 
 	}
 
-	private void charging() {
+	private void charging(int account) {
 		System.out.println("1. 1000원 충전");
 		System.out.println("2. 5000원 충전");
 		System.out.println("3. 10000원 충전");
@@ -144,31 +149,45 @@ public class Menu {
 		mod = sc.next();
 		switch (mod) {
 		case "1":
-			memberInfo.setAccount(memberInfo.getAccount() + 1000);
-			charging();
+			account += 1000;
+			charging(account);
 			break;
 		case "2":
-			memberInfo.setAccount(memberInfo.getAccount() + 5000);
-			charging();
+			account += 5000;
+			charging(account);
 			break;
 		case "3":
-			memberInfo.setAccount(memberInfo.getAccount() + 10000);
-			charging();
+			account += 10000;
+			charging(account);
 			break;
 		case "4":
-			memberInfo.setAccount(memberInfo.getAccount() + 50000);
-			charging();
+			account += 50000;
+			charging(account);
 			break;
 		case "5":
 			System.out.println("충전을 종료합니다");
-			printUserMenu();
+			newUser.member.get(nowUserId).setAccount(account);
+			nowUserAccount = newUser.member.get(nowUserId).getAccount();
+			printUserMenu(nowUserId,nowUserName,nowUserAccount);
 			break;
 		}
 	}
 
 	private void control() { // admin 컨트롤
 		System.out.println("ID를 입력하세요");
-		System.out.println("비밀번호를 입력 하세요");
+		if (sc.next().equals("admin")) {
+			System.out.println("비밀번호를 입력 하세요");
+			if (sc.next().equals("admin")) {
+				System.out.println("관리자 콘솔 접속 성공");
+				adminControl.adminMenu(newUser);
+			} else {
+				System.out.println("관리자 비밀번호가 아닙니다");
+				control();
+			}
+		} else {
+			System.out.println("관리자 아이디가 아닙니다");
+			control();
+		}
 	}
 
 }
