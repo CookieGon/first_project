@@ -1,10 +1,16 @@
 package product;
 
-public class Order {
+public class Products {
 	private String category;
 	private String pname;
 	private int price;
 	private int stock;
+	
+	
+	@Override
+	public String toString() {
+		return "상품 [카테고리=" + category + ", 상품=" + pname + ", 가격=" + price + ", 재고=" + stock + "]";
+	}
 	public String getCategory() {
 		return category;
 	}
@@ -29,7 +35,7 @@ public class Order {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
-	public Order(String category, String pname, int price, int stock) {
+	public Products(String category, String pname, int price, int stock) {
 		this.category = category;
 		this.pname = pname;
 		this.price = price;
