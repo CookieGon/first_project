@@ -1,7 +1,6 @@
 package menu;
 
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -32,40 +31,52 @@ public class Menu {
 	private String nowUserName;
 	private int nowUserAccount;
 
-	private boolean runnig = true; // 메인메뉴 동작 상태
-	private boolean userRunnig = true; // 메인메뉴 동작 상태
+	private boolean userRunnig = true; // 유저 메뉴 동작 상태
 
 	Scanner sc = new Scanner(System.in);
 
 	Timer timer = new Timer();
 
 	public void topPc() {
-		while (runnig) {
+		while (true) {
 			System.out.println();
 			System.out.println("1. login");
 			System.out.println("2. join");
 			System.out.println("4. exit");
 			System.out.println("메뉴의 번호를 입력해 주세요");
-			try {
-				mod = sc.next();
-				switch (mod) {
-				case "1":
-					login();
-					break;
-				case "2":
-					join();
-					break;
-				case "3":
-					control();
-					break;
-				case "4":
-					exit();
-					break;
-				}
-			} catch (InputMismatchException e) { // 숫자 외 입력 오류 방지
-				System.out.println("숫자를 입력해 주세요");
+			mod = sc.next();
+			switch (mod) {
+			case "1":
+				login();
+				break;
+			case "2":
+				join();
+				break;
+			case "3":
+				control();
+				break;
+			case "4":
+				exit();
+				break;
+			default:
+				System.out.println();
+				System.out.println("메뉴의 번호를 입력해주세요");
+				System.out.println();
+				break;
 			}
+
 		}
+	}
+	
+	
+	// 기존 사용자 등록
+	public void setDefaultUser() {
+		Member m1 = new Member("abc", "abc", "홍길동", 20000);
+		Member m2 = new Member("abcd", "abcd", "둘리", 13000);
+		Member m3 = new Member("123","123","라이언",16000);
+		newUser(m1.getId(), m1);
+		newUser(m2.getId(), m2);
+		newUser(m3.getId(), m3);
 	}
 
 	/*
@@ -90,23 +101,29 @@ public class Menu {
 	 */
 	private void exit() {
 		System.out.println("시스템을 종료합니다.");
-		runnig = false;
+		System.exit(0);
 	}
 
 	/*
 	 * 회원가입 메소드
 	 */
 	private void join() { // 회원가입
-		Member memberInfo = new Member();
+		String joinId;
+		String joinPw;
+		String joinName;
 		System.out.println("ID를 입력하세요");
-		memberInfo.setId(sc.next());
-		System.out.println("비밀번호를 입력 하세요");
-		memberInfo.setPw(sc.next());
-		System.out.println("이름을 입력 하세요");
-		memberInfo.setName(sc.next());
-		memberInfo.setAccount(1500);
-		newUser(memberInfo.getId(), memberInfo);
-		System.out.println(memberInfo.toString());
+		joinId = sc.next();
+		if (newUser.member.containsKey(joinId)) { // 중복 아이디 체크
+			System.out.println("중복된 아이디가 존재 합니다");
+			join();
+		} else {
+			System.out.println("비밀번호를 입력 하세요");
+			joinPw = sc.next();
+			System.out.println("이름을 입력 하세요");
+			joinName = sc.next();
+			Member memberInfo = new Member(joinId, joinPw, joinName, 0);
+			newUser(memberInfo.getId(), memberInfo);
+		}
 	}
 
 	private void newUser(String id, Member mb) {
@@ -122,16 +139,15 @@ public class Menu {
 			System.out.println("비밀번호를 입력 하세요");
 			String pw = sc.next();
 			if (newUser.member.get(id).getPw().equals(pw)) {
-				if (newUser.member.get(id).getAccount() < 1200) {
+				System.out.println("로그인에 성공했습니다");
+				timer.schedule(task, 5000, 5000);
+				nowUserId = id;
+				nowUserName = newUser.member.get(id).getName();
+				nowUserAccount = newUser.member.get(id).getAccount();
+				if (nowUserAccount < 1200) {
 					System.out.println("남은 사용시간이 부족합니다. 충전창으로 이동합니다");
-					nowUserAccount = newUser.member.get(id).getAccount();
 					charging(nowUserAccount);
 				} else {
-					System.out.println("로그인에 성공했습니다");
-					nowUserId = id;
-					nowUserName = newUser.member.get(id).getName();
-					nowUserAccount = newUser.member.get(id).getAccount();
-					timer.schedule(task, 3000, 3000);
 					printUserMenu();
 				}
 			}
@@ -197,7 +213,9 @@ public class Menu {
 
 	// 현재 로그인 된 사용자 잔액 조회 메소드
 	private void checkAccount(int account) {
+		System.out.println();
 		System.out.println(nowUserId + "님의 잔액은 " + account + "입니다.");
+		System.out.println();
 		printUserMenu();
 	}
 
@@ -284,6 +302,10 @@ public class Menu {
 					aList.removeAll(aList);
 					printUserMenu();
 				} else {
+					System.out.println();
+					for(Products a : aList) {
+						System.out.println("[ 상품명 : "+a.getPname()+" 가격 : "+a.getPrice()+" ] ");
+					}
 					System.out.println("상품 주문 완료");
 					nowUserAccount -= totalP;
 					System.out.println("잔액 : " + nowUserAccount + " 원");
@@ -346,33 +368,54 @@ public class Menu {
 
 	// admin계정 접속 / 관리자 콘솔 호출
 	private void control() { // admin 컨트롤
-		for (int i = 0; i <= 3; i++) {
-			System.out.println("ID를 입력하세요");
-			if (sc.next().equals("admin")) {
-				System.out.println("비밀번호를 입력 하세요");
-				if (sc.next().equals("admin")) {
-					System.out.println("관리자 콘솔 접속 성공");
-					adminControl.adminMenu(newUser);
+		String admod;
+		System.out.println();
+		System.out.println("1. 관리자 로그인");
+		System.out.println("2. 종료");
+		System.out.println();
+		admod = sc.next();
+		if (admod.equals("1")) {
+			for (int i = 1; i <= 4; i++) {
+				if (i == 4) {
+					System.out.println("-접속 실패-");
+					System.out.println("메인 메뉴로 돌아갑니다");
+					topPc();
 				} else {
-					System.out.println("관리자 비밀번호가 아닙니다");
-					i++;
+					System.out.println("ID를 입력하세요");
+					if (sc.next().equals("admin")) {
+						System.out.println("비밀번호를 입력 하세요");
+						if (sc.next().equals("admin")) {
+							System.out.println("관리자 콘솔 접속 성공");
+							adminControl.setProducts(Drink, Meal, Snack);
+							adminControl.adminMenu(newUser);
+							control();
+						} else {
+							System.out.println("관리자 비밀번호가 아닙니다. " + i + "회 오류");
+						}
+					} else {
+						System.out.println("관리자 아이디가 아닙니다. " + i + "회 오류");
+					}
 				}
-			} else {
-				System.out.println("관리자 아이디가 아닙니다");
-				i++;
 			}
+		} else if (admod.equals("2")) {
+			topPc();
+		} else {
+			System.out.println();
+			System.out.println("메뉴 번호를 입력해 주세요");
+			System.out.println();
+			control();
 		}
 	}
 
 	TimerTask task = new TimerTask() {
-
 		@Override
 		public void run() {
 			if (nowUserAccount > 1200) {
 				nowUserAccount -= 1200;
+				System.out.println(nowUserAccount);
 			} else {
 				timer.cancel();
-				printUserMenu();
+				topPc();
 			}
 		}
 
