@@ -1,6 +1,7 @@
 package menu;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,14 +32,44 @@ public class Menu {
 	private String nowUserName;
 	private int nowUserAccount;
 
+	private boolean runnig = true; // 유저 메뉴 동작 상태
 	private boolean userRunnig = true; // 유저 메뉴 동작 상태
 
 	Scanner sc = new Scanner(System.in);
+	
+	Timer timer;
+	TimerTask task;
 
-	Timer timer = new Timer();
+	// 기존 사용자 등록
+	public void setDefaultUser() {
+		Member m1 = new Member("abc", "abc", "홍길동", 20000);
+		Member m2 = new Member("abcd", "abcd", "둘리", 13000);
+		Member m3 = new Member("123", "123", "라이언", 16000);
+		newUser(m1.getId(), m1);
+		newUser(m2.getId(), m2);
+		newUser(m3.getId(), m3);
+	}
+
+	/*
+	 * 최초 상품 목록 생성
+	 */
+	public void setProduct() {
+		Drink[0] = new Drink("음료", "콜라", 1200, 20);
+		Drink[1] = new Drink("음료", "사이다", 1100, 20);
+		Drink[2] = new Drink("음료", "에너지드링크", 1500, 20);
+
+		Meal[0] = new Meal("식사", "라면", 3000, 30);
+		Meal[1] = new Meal("식사", "김치볶음밥", 4000, 30);
+		Meal[2] = new Meal("식사", "짜장라면", 3100, 30);
+
+		Snack[0] = new Snack("간식", "감자칩", 2000, 10);
+		Snack[1] = new Snack("간식", "쿠키", 1100, 10);
+		Snack[2] = new Snack("간식", "오다리", 1500, 10);
+	}
 
 	public void topPc() {
-		while (true) {
+		runnig = true;
+		while (runnig) {
 			System.out.println();
 			System.out.println("1. login");
 			System.out.println("2. join");
@@ -67,42 +98,6 @@ public class Menu {
 
 		}
 	}
-	
-	
-	// 기존 사용자 등록
-	public void setDefaultUser() {
-		Member m1 = new Member("abc", "abc", "홍길동", 20000);
-		Member m2 = new Member("abcd", "abcd", "둘리", 13000);
-		Member m3 = new Member("123","123","라이언",16000);
-		newUser(m1.getId(), m1);
-		newUser(m2.getId(), m2);
-		newUser(m3.getId(), m3);
-	}
-
-	/*
-	 * 최초 상품 목록 생성
-	 */
-	public void setProduct() {
-		Drink[0] = new Drink("음료", "콜라", 1200, 20);
-		Drink[1] = new Drink("음료", "사이다", 1100, 20);
-		Drink[2] = new Drink("음료", "에너지드링크", 1500, 20);
-
-		Meal[0] = new Meal("식사", "라면", 3000, 30);
-		Meal[1] = new Meal("식사", "김치볶음밥", 4000, 30);
-		Meal[2] = new Meal("식사", "짜장라면", 3100, 30);
-
-		Snack[0] = new Snack("간식", "감자칩", 2000, 10);
-		Snack[1] = new Snack("간식", "쿠키", 1100, 10);
-		Snack[2] = new Snack("간식", "오다리", 1500, 10);
-	}
-
-	/*
-	 * 파일 종료
-	 */
-	private void exit() {
-		System.out.println("시스템을 종료합니다.");
-		System.exit(0);
-	}
 
 	/*
 	 * 회원가입 메소드
@@ -126,6 +121,14 @@ public class Menu {
 		}
 	}
 
+	/*
+	 * 파일 종료
+	 */
+	private void exit() {
+		System.out.println("시스템을 종료합니다.");
+		System.exit(0);
+	}
+
 	private void newUser(String id, Member mb) {
 		newUser.addMember(id, mb);
 	}
@@ -140,7 +143,7 @@ public class Menu {
 			String pw = sc.next();
 			if (newUser.member.get(id).getPw().equals(pw)) {
 				System.out.println("로그인에 성공했습니다");
-				timer.schedule(task, 5000, 5000);
+				userRunnig = true;
 				nowUserId = id;
 				nowUserName = newUser.member.get(id).getName();
 				nowUserAccount = newUser.member.get(id).getAccount();
@@ -150,6 +153,9 @@ public class Menu {
 				} else {
 					printUserMenu();
 				}
+			} else {
+				System.out.println();
+				System.out.println("비밀번호가 틀렸습니다.");
 			}
 		}
 
@@ -158,6 +164,21 @@ public class Menu {
 	// 현재 로그인 된 사용자 메뉴 출력
 	private void printUserMenu() {
 		if (nowUserAccount > 1200) {
+			timer = new Timer();
+			task = new TimerTask() {
+				public void run() {
+					try {
+						if(nowUserAccount > 1200) {
+							
+						}else {
+							System.out.println("잔액이 부족합니다 충전/종료");
+						}
+					} catch (IndexOutOfBoundsException e) {
+					}
+				}
+				
+			};
+			timer.scheduleAtFixedRate(task, 3000, 3000);
 			while (userRunnig) {
 				System.out.println();
 				System.out.println("id : " + nowUserId + " 이름 : " + nowUserName);
@@ -202,6 +223,9 @@ public class Menu {
 		System.out.println("사용을 종료 하시겠습니까?(y,n)");
 		switchYN = sc.next();
 		if (switchYN.equals("y") || switchYN.equals("Y")) {
+			userRunnig = false;
+			task.cancel();
+			timer.cancel();
 			topPc();
 		} else if (switchYN.equals("n") || switchYN.equals("N")) {
 			printUserMenu();
@@ -227,27 +251,29 @@ public class Menu {
 		System.out.println("2. 식사");
 		System.out.println("3. 간식");
 		System.out.println("4. 결제/종료");
-		int cno = sc.nextInt();
-		printProducts(cno);
+		printProducts();
 	}
 
 	// 상품주문 카테고리 호출 메소드
-	public void printProducts(int categoryNo) {
-		switch (categoryNo) {
-		case 1:
+	public void printProducts() {
+		mod = sc.next();
+		switch (mod) {
+		case "1":
 			getCategory(Drink);
 			break;
-		case 2:
+		case "2":
 			getCategory(Meal);
 			break;
-		case 3:
+		case "3":
 			getCategory(Snack);
 			break;
-		case 4:
+		case "4":
 			checkOut();
 			break;
 		default:
-			System.out.println("메뉴 번호를 입력해주세요");
+			System.out.println();
+			System.out.println("메뉴 번호를 선택해주세요");
+			System.out.println();
 			order();
 			break;
 		}
@@ -277,6 +303,10 @@ public class Menu {
 			System.out.println();
 			System.out.println("해당 번호의 상품이 없습니다!");
 			System.out.println();
+		} catch (InputMismatchException e) {
+			System.out.println();
+			System.out.println("해당 번호의 상품이 없습니다!");
+			System.out.println();
 		}
 	}
 
@@ -303,8 +333,8 @@ public class Menu {
 					printUserMenu();
 				} else {
 					System.out.println();
-					for(Products a : aList) {
-						System.out.println("[ 상품명 : "+a.getPname()+" 가격 : "+a.getPrice()+" ] ");
+					for (Products a : aList) {
+						System.out.println("[ 상품명 : " + a.getPname() + " 가격 : " + a.getPrice() + " ] ");
 					}
 					System.out.println("상품 주문 완료");
 					nowUserAccount -= totalP;
@@ -406,19 +436,5 @@ public class Menu {
 			control();
 		}
 	}
-
-	TimerTask task = new TimerTask() {
-		@Override
-		public void run() {
-			if (nowUserAccount > 1200) {
-				nowUserAccount -= 1200;
-				System.out.println(nowUserAccount);
-			} else {
-				timer.cancel();
-				topPc();
-			}
-		}
-
-	};
 
 }
