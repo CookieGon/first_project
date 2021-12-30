@@ -33,12 +33,13 @@ public class Menu {
 	private int nowUserAccount;
 
 	private boolean runnig = true; // 유저 메뉴 동작 상태
-	private boolean userRunnig = true; // 유저 메뉴 동작 상태
 
 	Scanner sc = new Scanner(System.in);
-	
+
 	Timer timer;
 	TimerTask task;
+
+	boolean timerRunnig = false;
 
 	// 기존 사용자 등록
 	public void setDefaultUser() {
@@ -78,7 +79,7 @@ public class Menu {
 			mod = sc.next();
 			switch (mod) {
 			case "1":
-				login();
+				logIn();
 				break;
 			case "2":
 				join();
@@ -135,7 +136,7 @@ public class Menu {
 
 	// 로그인 메소드 hashMap에서 아이디 비밀번호 조회 / 비교
 	// 최소금액 1200원 미만일 경우 충전창으로 자동 이동
-	private void login() {
+	private void logIn() {
 		System.out.println("ID를 입력하세요");
 		String id = sc.next();
 		if (newUser.member.containsKey(id)) {
@@ -143,7 +144,6 @@ public class Menu {
 			String pw = sc.next();
 			if (newUser.member.get(id).getPw().equals(pw)) {
 				System.out.println("로그인에 성공했습니다");
-				userRunnig = true;
 				nowUserId = id;
 				nowUserName = newUser.member.get(id).getName();
 				nowUserAccount = newUser.member.get(id).getAccount();
@@ -163,68 +163,72 @@ public class Menu {
 
 	// 현재 로그인 된 사용자 메뉴 출력
 	private void printUserMenu() {
-		if (nowUserAccount > 1200) {
-			timer = new Timer();
-			task = new TimerTask() {
-				public void run() {
-					try {
-						if(nowUserAccount > 1200) {
-							
-						}else {
-							System.out.println("잔액이 부족합니다 충전/종료");
-						}
-					} catch (IndexOutOfBoundsException e) {
-					}
-				}
-				
-			};
-			timer.scheduleAtFixedRate(task, 3000, 3000);
-			while (userRunnig) {
+		if (!timerRunnig) {
+			startTimer();
+		}
+		System.out.println();
+		System.out.println("id : " + nowUserId + " 이름 : " + nowUserName);
+		System.out.println("1. 잔액 충전");
+		System.out.println("2. 상품 주문");
+		System.out.println("3. 잔액 조회");
+		System.out.println("4. 사용 종료");
+		mod = sc.next();
+		while (true) {
+			switch (mod) {
+			case "1":
+				charging(nowUserAccount);
+				break;
+			case "2":
+				order();
+				break;
+			case "3":
+				checkAccount(nowUserAccount);
+				break;
+			case "4":
+				logOut();
+				break;
+			default:
 				System.out.println();
-				System.out.println("id : " + nowUserId + " 이름 : " + nowUserName);
-				System.out.println("1. 잔액 충전");
-				System.out.println("2. 상품 주문");
-				System.out.println("3. 잔액 조회");
-				System.out.println("4. 사용 종료");
-				mod = sc.next();
-				while (true) {
-					switch (mod) {
-					case "1":
-						charging(nowUserAccount);
-						break;
-					case "2":
-						order();
-						break;
-					case "3":
-						checkAccount(nowUserAccount);
-						break;
-					case "4":
-						logOut();
-						break;
-					default:
-						System.out.println();
-						System.out.println("메뉴 번호를 입력해 주세요!");
-						System.out.println();
-					}
-				}
-
+				System.out.println("메뉴 번호를 입력해 주세요!");
+				System.out.println();
 			}
-		} else {
-			System.out.println();
-			System.out.println("사용시간 부족으로 사용을 종료합니다");
-			System.out.println();
-			topPc();
-			return;
+
 		}
 	}
 
+	private void startTimer() {
+		timer = new Timer();
+		task = new TimerTask() {
+			public void run() {
+				try {
+					if(nowUserAccount > 1200) {
+						newUser.member.get(nowUserId).setAccount(nowUserAccount -= 1200);
+					}else {
+						timer.cancel();
+						System.out.println("잔액이 부족합니다 충전/종료");
+						System.out.println("1. 충전");
+						System.out.println("2. 종료");
+						String YN = sc.next();
+						if(YN.equals("y")||YN.equals("Y")) {
+							charging(nowUserAccount);
+						}else if (YN.equals("n")||YN.equals("N")) {
+							logOut();
+						}
+					}
+				} catch (IndexOutOfBoundsException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		timer.scheduleAtFixedRate(task, 3000, 3000);
+		timerRunnig = true;
+	}
 	// 로그아웃 메소드
+	// 'y' or 'n'을 입력받아 로그아웃 실행
 	private void logOut() {
 		System.out.println("사용을 종료 하시겠습니까?(y,n)");
 		switchYN = sc.next();
 		if (switchYN.equals("y") || switchYN.equals("Y")) {
-			userRunnig = false;
-			task.cancel();
 			timer.cancel();
 			topPc();
 		} else if (switchYN.equals("n") || switchYN.equals("N")) {
@@ -256,7 +260,7 @@ public class Menu {
 
 	// 상품주문 카테고리 호출 메소드
 	public void printProducts() {
-		mod = sc.next();
+		String mod = sc.next();
 		switch (mod) {
 		case "1":
 			getCategory(Drink);
@@ -321,6 +325,10 @@ public class Menu {
 			for (Products a : aList) {
 				totalP += a.getPrice();
 			}
+
+			for (Products a : aList) {
+				System.out.println("[ 상품명 : " + a.getPname() + " 가격 : " + a.getPrice() + " ] ");
+			}
 			System.out.println("총 금액 : " + totalP + " 원");
 			System.out.print("결제 하시겠습니까 ? (y/n) : ");
 			checkYN = sc.next();
@@ -333,9 +341,6 @@ public class Menu {
 					printUserMenu();
 				} else {
 					System.out.println();
-					for (Products a : aList) {
-						System.out.println("[ 상품명 : " + a.getPname() + " 가격 : " + a.getPrice() + " ] ");
-					}
 					System.out.println("상품 주문 완료");
 					nowUserAccount -= totalP;
 					System.out.println("잔액 : " + nowUserAccount + " 원");
@@ -383,14 +388,29 @@ public class Menu {
 			charging(account);
 			break;
 		case "5":
-			System.out.println("충전을 종료합니다");
 			newUser.member.get(nowUserId).setAccount(account);
 			nowUserAccount = newUser.member.get(nowUserId).getAccount();
-			printUserMenu();
-			break;
+			if (nowUserAccount < 1200) {
+				System.out.println("사용 가능 잔액이 부족합니다.");
+				System.out.println("1. 충전");
+				System.out.println("2. 사용 종료");
+				System.out.print("메뉴 : ");
+				String str = sc.next();
+				if (str.equals("1")) {
+					charging(nowUserAccount);
+				} else if (str.equals("2")) {
+					logOut();
+				} else {
+					System.out.println("메뉴의 번호를 입력해주세요!");
+				}
+			} else {
+				System.out.println("충전을 종료합니다");
+				printUserMenu();
+				break;
+			}
 		default:
 			System.out.println();
-			System.out.println("메뉴 번호를 입력해 주세요!");
+			System.out.println("메뉴의 번호를 입력해 주세요!");
 			System.out.println();
 			break;
 		}
