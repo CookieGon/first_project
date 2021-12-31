@@ -18,14 +18,31 @@ public class AdminMenu {
 	private String inputId;
 
 	ArrayList<Products> pList = new ArrayList<>();
-
+	
+	// 매점 상품 목록 세팅
+	public void setProducts(Products[] drink, Products[] meal, Products[] snack) {
+		for (int i = 0; i < drink.length; i++) {
+			pList.add(drink[i]);
+		}
+		for (int i = 0; i < meal.length; i++) {
+			pList.add(meal[i]);
+		}
+		for (int i = 0; i < snack.length; i++) {
+			pList.add(snack[i]);
+		}
+	}
+	
+	// 관리자 콘솔 메인 메뉴
 	public void adminMenu(Management inputUser) {
 		adMenu = true;
 		this.newUser = inputUser;
 		while (adMenu) {
-			System.out.println("1. 회원관리");
-			System.out.println("2. 재고현황");
-			System.out.println("3. 종료");
+			System.out.println("--관리 목록--");
+			System.out.println("|1. 회원관리|");
+			System.out.println("|2. 재고현황|");
+			System.out.println("|3. 종료   |");
+			System.out.println("----------");
+			System.out.print(">>>");
 			mod = sc.next();
 			switch (mod) {
 			case "1":
@@ -46,7 +63,8 @@ public class AdminMenu {
 
 		}
 	}
-
+	
+	//재고 현황 리스트 출력
 	private void manageProduct() {
 		System.out.println();
 		int count = 1;
@@ -57,19 +75,22 @@ public class AdminMenu {
 		}
 		System.out.println("-----------------------------------------------------");
 	}
-
+	
+	// 회원 관리(회원탈퇴) 메소드
 	public void manageMember() {
-		for (Entry<String, Member> e : newUser.member.entrySet()) {
+		for (Entry<String, Member> e : newUser.member.entrySet()) { // Entryset으로 회원 정보 목록 해쉬맵의 키와 벨류를 가져옴
 			System.out.println(e.getKey() + " " + e.getValue());
 		}
 		System.out.println("1. 회원탈퇴");
 		System.out.println("2. 종료");
+		System.out.print(">>>");
 		mod2 = sc.nextInt();
 		if (mod2 == 1) {
 			System.out.print("삭제할아이디 입력 : ");
 			inputId = sc.next();
 			if (newUser.member.containsKey(inputId)) {
 				System.out.println("삭제하실 아이디는 : " + inputId + " 입니다. 삭제하시겠습니까?(y/n)");
+				System.out.print(">>>");
 				delete = sc.next();
 				switch (delete) {
 				case "y":
@@ -95,15 +116,4 @@ public class AdminMenu {
 		}
 	}
 
-	public void setProducts(Products[] drink, Products[] meal, Products[] snack) {
-		for (int i = 0; i < drink.length; i++) {
-			pList.add(drink[i]);
-		}
-		for (int i = 0; i < meal.length; i++) {
-			pList.add(meal[i]);
-		}
-		for (int i = 0; i < snack.length; i++) {
-			pList.add(snack[i]);
-		}
-	}
 }
